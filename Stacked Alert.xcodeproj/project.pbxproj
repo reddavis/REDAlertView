@@ -14,6 +14,7 @@
 		A4405C19169CC75300252270 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A4405C18169CC75300252270 /* main.m */; };
 		A4405C29169CC75400252270 /* SAViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A4405C27169CC75400252270 /* SAViewController.xib */; };
 		A4405C32169CCD6C00252270 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4405C31169CCD6C00252270 /* QuartzCore.framework */; };
+		A48DE5D0174ABC0300EB1C2B /* CAAnimation+EasingEquations.m in Sources */ = {isa = PBXBuildFile; fileRef = A48DE5CF174ABC0300EB1C2B /* CAAnimation+EasingEquations.m */; };
 		A4EE3D8C17438A1E009907CC /* SAAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A4EE3D8917438A1E009907CC /* SAAppDelegate.m */; };
 		A4EE3D8D17438A1E009907CC /* SAViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A4EE3D8B17438A1E009907CC /* SAViewController.m */; };
 		A4EE3D9617438A4D009907CC /* REDAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = A4EE3D9117438A4D009907CC /* REDAlertView.m */; };
@@ -43,11 +44,10 @@
 		A4405C16169CC75300252270 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A4405C18169CC75300252270 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		A4405C1A169CC75300252270 /* Stacked Alert-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Stacked Alert-Prefix.pch"; sourceTree = "<group>"; };
-		A4405C1E169CC75300252270 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
-		A4405C20169CC75300252270 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
-		A4405C22169CC75300252270 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		A4405C28169CC75400252270 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/SAViewController.xib; sourceTree = "<group>"; };
 		A4405C31169CCD6C00252270 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		A48DE5CE174ABC0300EB1C2B /* CAAnimation+EasingEquations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CAAnimation+EasingEquations.h"; sourceTree = "<group>"; };
+		A48DE5CF174ABC0300EB1C2B /* CAAnimation+EasingEquations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CAAnimation+EasingEquations.m"; sourceTree = "<group>"; };
 		A4EE3D8817438A1E009907CC /* SAAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SAAppDelegate.h; sourceTree = "<group>"; };
 		A4EE3D8917438A1E009907CC /* SAAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SAAppDelegate.m; sourceTree = "<group>"; };
 		A4EE3D8A17438A1E009907CC /* SAViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SAViewController.h; path = Classes/SAViewController.h; sourceTree = "<group>"; };
@@ -121,6 +121,7 @@
 			children = (
 				A4EE3D8717438A1E009907CC /* Classes */,
 				A4BBBBF616A803A500880452 /* Resources */,
+				A48DE5CD174ABBEA00EB1C2B /* Libraries */,
 				A4405C13169CC75300252270 /* Supporting Files */,
 			);
 			path = "Stacked Alert";
@@ -133,9 +134,6 @@
 				A4405C15169CC75300252270 /* InfoPlist.strings */,
 				A4405C18169CC75300252270 /* main.m */,
 				A4405C1A169CC75300252270 /* Stacked Alert-Prefix.pch */,
-				A4405C1E169CC75300252270 /* Default.png */,
-				A4405C20169CC75300252270 /* Default@2x.png */,
-				A4405C22169CC75300252270 /* Default-568h@2x.png */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -157,6 +155,15 @@
 				A4405C27169CC75400252270 /* SAViewController.xib */,
 			);
 			name = "Root View Controller";
+			sourceTree = "<group>";
+		};
+		A48DE5CD174ABBEA00EB1C2B /* Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				A48DE5CE174ABC0300EB1C2B /* CAAnimation+EasingEquations.h */,
+				A48DE5CF174ABC0300EB1C2B /* CAAnimation+EasingEquations.m */,
+			);
+			name = Libraries;
 			sourceTree = "<group>";
 		};
 		A4BBBBF616A803A500880452 /* Resources */ = {
@@ -302,6 +309,7 @@
 				A4EE3D9617438A4D009907CC /* REDAlertView.m in Sources */,
 				A4EE3D9717438A4D009907CC /* REDAlertWindow.m in Sources */,
 				A4EE3D9817438A4D009907CC /* REDButton.m in Sources */,
+				A48DE5D0174ABC0300EB1C2B /* CAAnimation+EasingEquations.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
