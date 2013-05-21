@@ -9,6 +9,8 @@
 #import "REDAlertWindow.h"
 #import "REDAlertView.h"
 
+#import "CAAnimation+EasingEquations.h"
+
 #import <QuartzCore/QuartzCore.h>
 
 
@@ -16,11 +18,17 @@
 
 @property (strong, nonatomic) UIWindow *originalKeyWindow;
 @property (strong, nonatomic) NSMutableArray *alertViews;
+@property (strong, nonatomic) NSMutableArray *animationQueue;
+@property (assign, nonatomic) BOOL isProcessingAnimation;
+
+- (BOOL)isTopAlertView:(REDAlertView *)alertView;
+- (void)processNextAnimation;
+- (void)alertViewPanGestureEngadged:(UIGestureRecognizer *)gesture;
 
 @end
 
 
-//static CGSize const kAlertViewSize = {250.0, 150.0};
+typedef void(^REDAlertAnimationBlock)(void);
 
 
 @implementation REDAlertWindow
@@ -45,6 +53,7 @@
     self = [super initWithFrame:frame];
     if (self)
     {
+        self.animationQueue = [NSMutableArray array];
         self.alertViews = [NSMutableArray array];
         
         self.windowLevel = UIWindowLevelAlert;
@@ -58,98 +67,186 @@
 #pragma mark -
 
 - (void)addAlert:(REDAlertView *)alertView
-{        
-    @synchronized(self.alertViews)
-    {
-        if (![self isKeyWindow])
-        {
-            self.originalKeyWindow = [[UIApplication sharedApplication] keyWindow];
-            self.hidden = NO;
-            [self makeKeyAndVisible];
-        }
-        
-        CGFloat animationDelay = 0.0;
-        CGFloat animationDelayIncrement = 0.2;
-        for (UIView *stackedView in self.alertViews)
-        {
-            [UIView animateWithDuration:animationDelayIncrement delay:animationDelay options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                stackedView.frame = CGRectOffset(stackedView.frame, 0.0, -CGRectGetHeight(stackedView.frame)*0.2);
-                stackedView.transform = CGAffineTransformScale(stackedView.transform, 0.8, 0.8);
-            } completion:^(BOOL finished) {
-                
-            }];
-            
-            animationDelay += animationDelayIncrement;
-        }
-        
-        [self.alertViews addObject:alertView];
-        [self addSubview:alertView];
-        [alertView sizeToFit];
-        
-        alertView.frame = CGRectMake(0.0, -alertView.frame.size.height, alertView.frame.size.width, alertView.frame.size.height);
-        alertView.center = CGPointMake(CGRectGetWidth(self.frame)/2, alertView.center.y);
-                
-        [UIView animateWithDuration:animationDelayIncrement delay:animationDelay options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            alertView.center = CGPointMake(CGRectGetWidth(self.frame)/2, CGRectGetHeight(self.frame)/2);
-        } completion:^(BOOL finished) {
-            
-        }];
-    }
-}
-
-- (void)removeAlert:(REDAlertView *)alertView
 {
-    // TODO: animation for removing an alert view in the middle of the stack
-    UIView *topView = [self.alertViews lastObject];
-    if (alertView == topView)
-        [self popAlertFromStack];
-}
-
-- (void)popAlertFromStack
-{    
-    @synchronized(self.alertViews)
-    {
-        UIView *topView = [self.alertViews lastObject];
-        
-        [UIView animateWithDuration:0.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            topView.alpha = 0.0;
-        } completion:^(BOOL finished) {
-            [topView removeFromSuperview];
-            [self.alertViews removeLastObject];
+    REDAlertAnimationBlock animationBlock = ^{
+        @synchronized(self.alertViews)
+        {
+            if (![self isKeyWindow])
+            {
+                self.originalKeyWindow = [[UIApplication sharedApplication] keyWindow];
+                self.hidden = NO;
+                [self makeKeyAndVisible];
+            }
             
+            UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(alertViewPanGestureEngadged:)];
+            [alertView addGestureRecognizer:panGesture];
             
             CGFloat animationDelay = 0.0;
             CGFloat animationDelayIncrement = 0.2;
-            for (UIView *alertView in [self.alertViews reverseObjectEnumerator])
-            {
-                [UIView animateWithDuration:0.3 delay:animationDelay options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                    alertView.frame = CGRectOffset(alertView.frame, 0.0, CGRectGetHeight(alertView.frame)*0.2);
-                    alertView.transform = CGAffineTransformScale(alertView.transform, 1.0/0.8, 1.0/0.8);
+            for (UIView *stackedView in self.alertViews)
+            {                
+                [UIView animateWithDuration:animationDelayIncrement delay:animationDelay options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                    stackedView.frame = CGRectOffset(stackedView.frame, 0.0, -CGRectGetHeight(stackedView.frame)*0.2);
+                    stackedView.transform = CGAffineTransformScale(stackedView.transform, 0.8, 0.8);
                 } completion:^(BOOL finished) {
-                
+                    
                 }];
                 
                 animationDelay += animationDelayIncrement;
             }
             
-            if (!self.alertViews.count)
-            {
-                [self.originalKeyWindow makeKeyAndVisible];
-                self.hidden = YES;
-            }
-        }];
+            [self.alertViews addObject:alertView];
+            [self addSubview:alertView];
+            [alertView sizeToFit];
+            
+            alertView.frame = CGRectMake(0.0, -alertView.frame.size.height, alertView.frame.size.width, alertView.frame.size.height);
+            alertView.center = CGPointMake(CGRectGetWidth(self.frame)/2, alertView.center.y);
+            
+            __weak typeof(self) weakSelf = self;
+            [CAAnimation addAnimationToLayer:alertView.layer withKeyPath:@"position.y" duration:0.5 to:CGRectGetHeight(self.frame)/2 easingFunction:CAAnimationEasingFunctionEaseOutElastic completionBlock:^{
+                
+                alertView.center = self.center;
+                [alertView.layer removeAllAnimations];
+                
+                weakSelf.isProcessingAnimation = NO;
+                [weakSelf processNextAnimation];
+            }];
+        }
+    };
+    
+    [self.animationQueue addObject:animationBlock];
+    
+    if (!self.isProcessingAnimation)
+        [self processNextAnimation];
+}
+
+- (void)removeAlert:(REDAlertView *)alertView
+{
+    if ([self isTopAlertView:alertView])
+        [self popAlertFromStack];
+}
+
+- (void)popAlertFromStack
+{
+    REDAlertAnimationBlock animationBlock = ^{
+        @synchronized(self.alertViews)
+        {
+            UIView *topView = [self.alertViews lastObject];
+            
+            [UIView animateWithDuration:0.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                topView.alpha = 0.0;
+            } completion:^(BOOL finished) {
+                [topView removeFromSuperview];
+                [self.alertViews removeLastObject];
+                
+                CGFloat animationDelay = 0.0;
+                CGFloat animationDelayIncrement = 0.2;
+                
+                for (REDAlertView *alertView in [self.alertViews reverseObjectEnumerator])
+                {
+                    [UIView animateWithDuration:animationDelayIncrement delay:animationDelay options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                        alertView.frame = CGRectOffset(alertView.frame, 0.0, CGRectGetHeight(alertView.frame)*0.2);
+                        alertView.transform = CGAffineTransformScale(alertView.transform, 1.0/0.8, 1.0/0.8);
+                    } completion:^(BOOL finished) {
+                        if (alertView == [self.alertViews objectAtIndex:0])
+                        {
+                            self.isProcessingAnimation = NO;
+                            [self processNextAnimation];
+                        }
+                    }];
+                    
+                    animationDelay += animationDelayIncrement;
+                };
+                
+                if (!self.alertViews.count)
+                {
+                    self.isProcessingAnimation = NO;
+                    [self.originalKeyWindow makeKeyAndVisible];
+                    self.hidden = YES;
+                }
+            }];
+        }
+    };
+    
+    [self.animationQueue addObject:animationBlock];
+    
+    if (!self.isProcessingAnimation)
+        [self processNextAnimation];
+}
+
+#pragma mark - Animation Processing
+
+- (void)processNextAnimation
+{
+    if (self.animationQueue.count == 0)
+        return;
+    
+    REDAlertAnimationBlock animationBlock = [self.animationQueue objectAtIndex:0];
+    [self.animationQueue removeObjectAtIndex:0];
+    
+    self.isProcessingAnimation = YES;
+    animationBlock();
+}
+
+#pragma mark - Gestures
+
+- (void)alertViewPanGestureEngadged:(UIGestureRecognizer *)gesture
+{
+    UIPanGestureRecognizer *panGesture = (UIPanGestureRecognizer *)gesture;
+    REDAlertView *alertView = (REDAlertView *)gesture.view;
+    
+    if (![self isTopAlertView:alertView])
+        return;
+    
+    if (panGesture.state == UIGestureRecognizerStateBegan)
+    {
+        self.isProcessingAnimation = YES;
+    }
+    else if (panGesture.state == UIGestureRecognizerStateChanged)
+    {
+        CGPoint translatedPoint = [panGesture translationInView:self];
+        CGPoint alertViewCenter = CGPointMake(self.center.x+translatedPoint.x, self.center.y+translatedPoint.y);
+        alertView.center = alertViewCenter;
+    }
+    else
+    {
+        CGPoint velocity = [panGesture velocityInView:self];
+        CGFloat xVelocity = abs(velocity.x);
+        CGFloat yVelocity = abs(velocity.y);
+        
+        NSLog(@"Throw velocity x:%f y:%f", xVelocity, yVelocity);
+        
+        static CGFloat const kPopAlertViewThrowThreshold = 2000.0;
+        BOOL popAlertView = (xVelocity > kPopAlertViewThrowThreshold || yVelocity > kPopAlertViewThrowThreshold);
+        if (popAlertView)
+        {
+            // TODO: Throw alert view off screen
+            self.isProcessingAnimation = NO;
+            [self popAlertFromStack];
+        }
+        else
+        {
+            [CAAnimation addAnimationToLayer:alertView.layer withKeyPath:@"position.x" duration:0.5 to:self.center.x easingFunction:CAAnimationEasingFunctionEaseOutElastic completionBlock:nil];
+            
+            __weak typeof(self) weakSelf = self;
+            [CAAnimation addAnimationToLayer:alertView.layer withKeyPath:@"position.y" duration:0.5 to:self.center.y easingFunction:CAAnimationEasingFunctionEaseOutElastic completionBlock:^{
+                
+                alertView.center = self.center;
+                [alertView.layer removeAllAnimations];
+                
+                weakSelf.isProcessingAnimation = NO;
+                [weakSelf processNextAnimation];
+            }];
+        }
     }
 }
 
 #pragma mark - Helpers
 
-- (UIColor *)randomColor
-{    
-    CGFloat hue = (arc4random() % 256 / 256.0);
-    CGFloat saturation = (arc4random() % 128 / 256.0) + 0.5;
-    CGFloat brightness = (arc4random() % 128 / 256.0) + 0.5;
-    
-    return [UIColor colorWithHue:hue saturation:saturation brightness:brightness alpha:1];
+- (BOOL)isTopAlertView:(REDAlertView *)alertView
+{
+    UIView *topView = [self.alertViews lastObject];
+    return (alertView == topView);
 }
 
 #pragma mark - Drawing
