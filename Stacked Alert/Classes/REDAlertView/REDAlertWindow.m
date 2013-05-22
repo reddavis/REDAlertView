@@ -105,14 +105,13 @@ typedef void(^REDAlertAnimationBlock)(void);
             alertView.frame = CGRectMake(0.0, -alertView.frame.size.height, alertView.frame.size.width, alertView.frame.size.height);
             alertView.center = CGPointMake(CGRectGetWidth(self.frame)/2, alertView.center.y);
             
-            __weak typeof(self) weakSelf = self;
             [CAAnimation addAnimationToLayer:alertView.layer withKeyPath:@"position.y" duration:0.5 to:CGRectGetHeight(self.frame)/2 easingFunction:CAAnimationEasingFunctionEaseOutElastic completionBlock:^{
                 
                 alertView.center = self.center;
                 [alertView.layer removeAllAnimations];
                 
-                weakSelf.isProcessingAnimation = NO;
-                [weakSelf processNextAnimation];
+                self.isProcessingAnimation = NO;
+                [self processNextAnimation];
             }];
         }
     };
