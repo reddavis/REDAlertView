@@ -20,6 +20,7 @@
 @property (strong, nonatomic) NSMutableArray *alertViews;
 @property (strong, nonatomic) NSMutableArray *animationQueue;
 @property (assign, nonatomic) BOOL isProcessingAnimation;
+@property (strong, nonatomic) NSMutableDictionary *gestureStartingPoints;
 
 - (BOOL)isTopAlertView:(REDAlertView *)alertView;
 - (void)processNextAnimation;
@@ -53,6 +54,7 @@ typedef void(^REDAlertAnimationBlock)(void);
     self = [super initWithFrame:frame];
     if (self)
     {
+        self.gestureStartingPoints = [NSMutableDictionary dictionary];
         self.animationQueue = [NSMutableArray array];
         self.alertViews = [NSMutableArray array];
         
@@ -80,6 +82,7 @@ typedef void(^REDAlertAnimationBlock)(void);
             
             UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(alertViewPanGestureEngadged:)];
             [alertView addGestureRecognizer:panGesture];
+            alertView.tag = self.alertViews.count;
             
             CGFloat animationDelay = 0.0;
             CGFloat animationDelayIncrement = 0.2;
@@ -194,18 +197,19 @@ typedef void(^REDAlertAnimationBlock)(void);
 {
     UIPanGestureRecognizer *panGesture = (UIPanGestureRecognizer *)gesture;
     REDAlertView *alertView = (REDAlertView *)gesture.view;
-    
-    if (![self isTopAlertView:alertView])
-        return;
-    
+        
     if (panGesture.state == UIGestureRecognizerStateBegan)
     {
+        [self.gestureStartingPoints setObject:[NSValue valueWithCGPoint:alertView.center] forKey:@(alertView.tag)];
         self.isProcessingAnimation = YES;
     }
     else if (panGesture.state == UIGestureRecognizerStateChanged)
     {
+        NSValue *startingPointValue = [self.gestureStartingPoints objectForKey:@(alertView.tag)];
+        CGPoint startingPoint = [startingPointValue CGPointValue];
+        
         CGPoint translatedPoint = [panGesture translationInView:self];
-        CGPoint alertViewCenter = CGPointMake(self.center.x+translatedPoint.x, self.center.y+translatedPoint.y);
+        CGPoint alertViewCenter = CGPointMake(startingPoint.x+translatedPoint.x, startingPoint.y+translatedPoint.y);
         alertView.center = alertViewCenter;
     }
     else
@@ -214,30 +218,44 @@ typedef void(^REDAlertAnimationBlock)(void);
         CGFloat xVelocity = abs(velocity.x);
         CGFloat yVelocity = abs(velocity.y);
         
+        NSValue *startingPointValue = [self.gestureStartingPoints objectForKey:@(alertView.tag)];
+        CGPoint startingPoint = [startingPointValue CGPointValue];
+        CGPoint endPoint = alertView.center;
+        
         NSLog(@"Throw velocity x:%f y:%f", xVelocity, yVelocity);
         
         static CGFloat const kPopAlertViewThrowThreshold = 2000.0;
-        BOOL popAlertView = (xVelocity > kPopAlertViewThrowThreshold || yVelocity > kPopAlertViewThrowThreshold);
+        BOOL popAlertView = (xVelocity > kPopAlertViewThrowThreshold || yVelocity > kPopAlertViewThrowThreshold) && [self isTopAlertView:alertView];
         if (popAlertView)
         {
-            // TODO: Throw alert view off screen
-            self.isProcessingAnimation = NO;
-            [self popAlertFromStack];
-        }
-        else
-        {
-            [CAAnimation addAnimationToLayer:alertView.layer withKeyPath:@"position.x" duration:0.5 to:self.center.x easingFunction:CAAnimationEasingFunctionEaseOutElastic completionBlock:nil];
-            
-            __weak typeof(self) weakSelf = self;
-            [CAAnimation addAnimationToLayer:alertView.layer withKeyPath:@"position.y" duration:0.5 to:self.center.y easingFunction:CAAnimationEasingFunctionEaseOutElastic completionBlock:^{
-                
-                alertView.center = self.center;
-                [alertView.layer removeAllAnimations];
-                
-                weakSelf.isProcessingAnimation = NO;
-                [weakSelf processNextAnimation];
+            // Calculate trajectory
+            CGFloat xDifference = endPoint.x - startingPoint.x;
+            CGFloat yDifference = endPoint.y - startingPoint.y;
+            CGFloat scale = self.frame.size.height / sqrtf(xDifference * xDifference + yDifference * yDifference);
+            CGPoint projectedPosition = CGPointMake(startingPoint.x + xDifference * scale, startingPoint.y + yDifference * scale);
+                        
+            [UIView animateWithDuration:0.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                alertView.center = projectedPosition;
+            } completion:^(BOOL finished) {
+                self.isProcessingAnimation = NO;
+                [self popAlertFromStack];
             }];
         }
+        else
+        {            
+            [CAAnimation addAnimationToLayer:alertView.layer withKeyPath:@"position.x" duration:0.5 to:startingPoint.x easingFunction:CAAnimationEasingFunctionEaseOutElastic completionBlock:nil];
+            
+            [CAAnimation addAnimationToLayer:alertView.layer withKeyPath:@"position.y" duration:0.5 to:startingPoint.y easingFunction:CAAnimationEasingFunctionEaseOutElastic completionBlock:^{
+                
+                alertView.center = startingPoint;
+                [alertView.layer removeAllAnimations];
+                
+                self.isProcessingAnimation = NO;
+                [self processNextAnimation];
+            }];
+        }
+        
+        [self.gestureStartingPoints removeObjectForKey:@(alertView.tag)];
     }
 }
 
