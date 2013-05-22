@@ -19,7 +19,6 @@
 @property (copy, nonatomic) NSString *message;
 @property (copy, nonatomic) NSString *cancelButtonTitle;
 
-@property (strong, nonatomic) REDButton *cancelButton;
 @property (strong, nonatomic) UILabel *titleLabel;
 @property (strong, nonatomic) UILabel *messageLabel;
 
@@ -29,7 +28,7 @@
 - (void)setupLabels;
 - (UILabel *)buildLabel;
 
-- (void)cancelButtonTapped:(id)sender;
+- (void)buttonTapped:(id)sender;
 
 @end
 
@@ -69,11 +68,9 @@ static CGFloat const kButtonTopBottomPadding = 8.0;
         [self setupLabels];
         
         // Buttons
-        self.cancelButton = [REDButton buttonWithREDButtonType:REDButtonTypeLight];
-        [self.cancelButton setTitle:self.cancelButtonTitle forState:UIControlStateNormal];
-        [self.cancelButton addTarget:self action:@selector(cancelButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-        [self addSubview:self.cancelButton];
-        [self.buttons addObject:self.cancelButton];
+        REDButton *cancelButton = [REDButton buttonWithREDButtonType:REDButtonTypeLight];
+        [cancelButton setTitle:self.cancelButtonTitle forState:UIControlStateNormal];
+        [self.buttons addObject:cancelButton];
         
         va_list args;
         va_start(args, otherButtonTitles);
@@ -82,12 +79,17 @@ static CGFloat const kButtonTopBottomPadding = 8.0;
         {
             REDButton *button = [REDButton buttonWithREDButtonType:REDButtonTypeLight];
             [button setTitle:argString forState:UIControlStateNormal];
-            [self addSubview:button];
             [self.buttons addObject:button];
             
             argString = va_arg(args, NSString *);
         }
         va_end(args);
+        
+        for (REDButton *button in self.buttons)
+        {
+            [button addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
+            [self addSubview:button];
+        }
     }
     
     return self;
@@ -164,14 +166,31 @@ static CGFloat const kButtonTopBottomPadding = 8.0;
 #pragma mark -
 
 - (void)show
-{    
-    [[REDAlertWindow mainWindow] addAlert:self];
+{
+    __weak typeof(self) weakSelf = self;
+    if (self.willPresentBlock)
+        self.willPresentBlock(weakSelf);
+    
+    [[REDAlertWindow mainWindow] addAlert:self completionBlock:^{
+        if (self.didPresentBlock)
+            self.didPresentBlock(weakSelf);
+    }];
 }
 
 #pragma mark - Actions
 
-- (void)cancelButtonTapped:(id)sender
+- (void)buttonTapped:(id)sender
 {
+    __weak typeof(self) weakSelf = self;
+    if (self.willDismissBlock)
+        self.willDismissBlock(weakSelf);
+    
+    if (self.clickedButtonBlock)
+    {
+        NSInteger buttonIndex = [self.buttons indexOfObject:sender];
+        self.clickedButtonBlock(buttonIndex);
+    }
+    
     [[REDAlertWindow mainWindow] removeAlert:self];
 }
 
