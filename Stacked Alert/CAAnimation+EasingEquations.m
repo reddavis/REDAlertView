@@ -238,7 +238,9 @@ static EasingFunction easeInOutBounce = ^CGFloat(CGFloat t, CGFloat b, CGFloat c
 	return easeOutBounce (t*2-d, 0, c, d) * .5 + c*.5 + b;
 };
 
+
 static char const kCompletionBlockKey;
+static CGFloat const kFramesPerSecond = 60.0;
 
 
 @implementation CAAnimation (EasingEquations)
@@ -301,8 +303,8 @@ static char const kCompletionBlockKey;
     animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
     animation.removedOnCompletion = NO;
     animation.completionBlock = block;
-    
-    CGFloat steps = 100;
+        
+    CGFloat steps = kFramesPerSecond * duration;
     NSMutableArray *values = [NSMutableArray arrayWithCapacity:steps];
     CGFloat delta = endValue - startValue;
     EasingFunction function = [CAAnimation blockForCAAnimationEasingFunction:easingFunction];
