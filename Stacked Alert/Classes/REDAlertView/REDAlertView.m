@@ -78,8 +78,8 @@ static CGFloat const kButtonTopBottomPadding = 8.0;
         va_list args;
         va_start(args, otherButtonTitles);
         NSString *argString = otherButtonTitles;
-        while (argString != nil) {
-            
+        while (argString != nil)
+        {
             REDButton *button = [REDButton buttonWithREDButtonType:REDButtonTypeLight];
             [button setTitle:argString forState:UIControlStateNormal];
             [self addSubview:button];
