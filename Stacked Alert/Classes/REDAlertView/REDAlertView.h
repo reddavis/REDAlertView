@@ -14,15 +14,14 @@
 
 @interface REDAlertView : UIView
 
-@property (weak, nonatomic) id <REDStackedAlertViewDelegate> delegate;
+@property (copy, nonatomic) void(^clickedButtonBlock)(NSInteger buttonIndex);
+@property (copy, nonatomic) void(^willDismissBlock)(NSInteger buttonIndex);
+@property (copy, nonatomic) void(^didDismissBlock)(NSInteger buttonIndex);
+@property (copy, nonatomic) void(^willPresentBlock)(REDAlertView *alertView);
+@property (copy, nonatomic) void(^didPresentBlock)(REDAlertView *alertView);
+@property (copy, nonatomic) void(^cancelBlock)(REDAlertView *alertView);
 
 - (id)initWithTitle:(NSString *)title message:(NSString *)message delegate:(id)delegate cancelButtonTitle:(NSString *)cancelButtonTitle otherButtonTitles:(NSString *)otherButtonTitles, ...;
 - (void)show;
-
-@end
-
-
-@protocol REDStackedAlertViewDelegate <NSObject>
-@optional
 
 @end
