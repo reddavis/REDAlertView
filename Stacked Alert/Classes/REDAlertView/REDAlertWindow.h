@@ -16,7 +16,7 @@
 
 + (REDAlertWindow *)mainWindow;
 
-- (void)addAlert:(REDAlertView *)alertView;
+- (void)addAlert:(REDAlertView *)alertView completionBlock:(void (^)(void))block;
 - (void)removeAlert:(REDAlertView *)alertView;
 
 @end

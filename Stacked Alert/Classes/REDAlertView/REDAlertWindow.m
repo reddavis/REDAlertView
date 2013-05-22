@@ -68,7 +68,7 @@ typedef void(^REDAlertAnimationBlock)(void);
 
 #pragma mark -
 
-- (void)addAlert:(REDAlertView *)alertView
+- (void)addAlert:(REDAlertView *)alertView completionBlock:(void (^)(void))block
 {
     REDAlertAnimationBlock animationBlock = ^{
         @synchronized(self.alertViews)
@@ -109,6 +109,9 @@ typedef void(^REDAlertAnimationBlock)(void);
                 
                 alertView.center = self.center;
                 [alertView.layer removeAllAnimations];
+                
+                if (block)
+                    block();
                 
                 self.isProcessingAnimation = NO;
                 [self processNextAnimation];
