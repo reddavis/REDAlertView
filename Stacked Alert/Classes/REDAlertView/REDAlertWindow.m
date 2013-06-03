@@ -223,9 +223,7 @@ typedef void(^REDAlertAnimationBlock)(void);
         NSValue *startingPointValue = [self.gestureStartingPoints objectForKey:@(alertView.tag)];
         CGPoint startingPoint = [startingPointValue CGPointValue];
         CGPoint endPoint = alertView.center;
-        
-        NSLog(@"Throw velocity x:%f y:%f", xVelocity, yVelocity);
-        
+                
         static CGFloat const kPopAlertViewThrowThreshold = 2000.0;
         BOOL popAlertView = (xVelocity > kPopAlertViewThrowThreshold || yVelocity > kPopAlertViewThrowThreshold) && [self isTopAlertView:alertView];
         if (popAlertView)
@@ -275,15 +273,18 @@ typedef void(^REDAlertAnimationBlock)(void);
 {    
     [super drawRect:rect];
     
-//    CGContextRef context = UIGraphicsGetCurrentContext();
-//    
-//    NSArray *colours = @[(id)[UIColor colorWithWhite:1.0 alpha:0.7].CGColor, (id)[UIColor colorWithWhite:0.0 alpha:0.7].CGColor];
-//    CGGradientRef gradient = CGGradientCreateWithColors(NULL, (__bridge CFArrayRef)colours, NULL);
-//    
-//    CGPoint startPoint = CGPointMake(CGRectGetWidth(rect)/2, CGRectGetHeight(rect)/2);
-//        
-//    CGContextDrawRadialGradient(context, gradient, startPoint, 0.0, startPoint, CGRectGetWidth(rect), 0);
-//    CGGradientRelease(gradient);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+
+    CGFloat colorLocations[2] = {0.0, 1.0};
+    CGFloat colors[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6};
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGGradientRef gradient = CGGradientCreateWithColorComponents(colorSpace, colors, colorLocations, 2);
+    CGColorSpaceRelease(colorSpace);
+    
+    CGPoint center = CGPointMake(floorf(rect.size.width/2), floorf(rect.size.height/2));
+    CGFloat radius = MIN(rect.size.width, rect.size.height);
+    CGContextDrawRadialGradient(context, gradient, center, 0, center, radius, kCGGradientDrawsAfterEndLocation);
+    CGGradientRelease(gradient);
 }
 
 @end
