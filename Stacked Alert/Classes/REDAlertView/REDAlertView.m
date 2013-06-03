@@ -135,7 +135,6 @@ static CGFloat const kButtonTopBottomPadding = 8.0;
     else
     {
         CGFloat centerXCoor = floorf(self.bounds.size.width/2.0);
-        
         CGFloat yCoor = CGRectGetMaxY(self.messageLabel.frame) + kButtonTopBottomPadding;
         CGFloat xCoor = centerXCoor - (kLargeButtonSize.width/2.0);
         for (REDButton *button in self.buttons)
