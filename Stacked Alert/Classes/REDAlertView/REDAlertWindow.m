@@ -22,8 +22,10 @@
 @property (assign, nonatomic) BOOL isProcessingAnimation;
 @property (strong, nonatomic) NSMutableDictionary *gestureStartingPoints;
 
-- (BOOL)isTopAlertView:(REDAlertView *)alertView;
 - (void)processNextAnimation;
+- (void)popAlertFromStack;
+- (void)dismissAllAlerts;
+- (BOOL)isTopAlertView:(REDAlertView *)alertView;
 - (void)alertViewPanGestureEngadged:(UIGestureRecognizer *)gesture;
 
 @end
@@ -145,11 +147,11 @@ typedef void(^REDAlertAnimationBlock)(void);
                 [self.alertViews removeLastObject];
                 
                 CGFloat animationDelay = 0.0;
-                CGFloat animationDelayIncrement = 0.2;
+                CGFloat animationDuration = 0.2;
                 
                 for (REDAlertView *alertView in [self.alertViews reverseObjectEnumerator])
                 {
-                    [UIView animateWithDuration:animationDelayIncrement delay:animationDelay options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                    [UIView animateWithDuration:animationDuration delay:animationDelay options:UIViewAnimationOptionCurveEaseInOut animations:^{
                         alertView.frame = CGRectOffset(alertView.frame, 0.0, CGRectGetHeight(alertView.frame)*0.2);
                         alertView.transform = CGAffineTransformScale(alertView.transform, 1.0/0.8, 1.0/0.8);
                     } completion:^(BOOL finished) {
@@ -160,7 +162,7 @@ typedef void(^REDAlertAnimationBlock)(void);
                         }
                     }];
                     
-                    animationDelay += animationDelayIncrement;
+                    animationDelay += animationDuration;
                 };
                 
                 if (!self.alertViews.count)
@@ -170,6 +172,50 @@ typedef void(^REDAlertAnimationBlock)(void);
                     self.hidden = YES;
                 }
             }];
+        }
+    };
+    
+    [self.animationQueue addObject:animationBlock];
+    
+    if (!self.isProcessingAnimation)
+        [self processNextAnimation];
+}
+
+- (void)dismissAllAlerts
+{
+    REDAlertAnimationBlock animationBlock = ^{
+        @synchronized(self.alertViews)
+        {
+            CGFloat animationDelay = 0.0;
+            CGFloat animationDuration = 0.20;
+            
+            for (REDAlertView *alertView in [self.alertViews reverseObjectEnumerator])
+            {
+                [UIView animateWithDuration:animationDuration delay:animationDelay options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                    CGRect rect = alertView.frame;
+                    rect.origin.y -= 15.0;
+                    alertView.frame = rect;
+                } completion:^(BOOL finished) {
+                    [UIView animateWithDuration:animationDuration delay:0.0 options:UIViewAnimationOptionCurveLinear animations:^{
+                        CGRect rect = alertView.frame;
+                        rect.origin.y = self.frame.size.height;
+                        alertView.frame = rect;
+                    } completion:^(BOOL finished) {
+                        
+                        [self.alertViews removeLastObject];
+                        [alertView removeFromSuperview];
+                        
+                        if (!self.alertViews.count)
+                        {
+                            self.isProcessingAnimation = NO;
+                            [self.originalKeyWindow makeKeyAndVisible];
+                            self.hidden = YES;
+                        }
+                    }];
+                }];
+                
+                animationDelay += animationDuration;
+            };
         }
     };
     
@@ -257,6 +303,12 @@ typedef void(^REDAlertAnimationBlock)(void);
         
         [self.gestureStartingPoints removeObjectForKey:@(alertView.tag)];
     }
+}
+
+- (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
+{
+    if (motion == UIEventSubtypeMotionShake)
+        [self dismissAllAlerts];
 }
 
 #pragma mark - Helpers
