@@ -14,9 +14,6 @@
 
 @interface REDAlertWindow : UIWindow
 
-+ (REDAlertWindow *)mainWindow;
-
-- (void)addAlert:(REDAlertView *)alertView completionBlock:(void (^)(void))block;
-- (void)removeAlert:(REDAlertView *)alertView;
+@property (strong, nonatomic) UIWindow *originalKeyWindow;
 
 @end

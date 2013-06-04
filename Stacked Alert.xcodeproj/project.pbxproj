@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A43A3479175E85A200F23505 /* REDAlertViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A43A3478175E85A200F23505 /* REDAlertViewController.m */; };
 		A4405C0D169CC75300252270 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4405C0C169CC75300252270 /* UIKit.framework */; };
 		A4405C0F169CC75300252270 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4405C0E169CC75300252270 /* Foundation.framework */; };
 		A4405C11169CC75300252270 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4405C10169CC75300252270 /* CoreGraphics.framework */; };
@@ -36,6 +37,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A43A3477175E85A200F23505 /* REDAlertViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = REDAlertViewController.h; sourceTree = "<group>"; };
+		A43A3478175E85A200F23505 /* REDAlertViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = REDAlertViewController.m; sourceTree = "<group>"; };
 		A4405C08169CC75300252270 /* Stacked Alert.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stacked Alert.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4405C0C169CC75300252270 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		A4405C0E169CC75300252270 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -194,6 +197,8 @@
 				A4EE3D9317438A4D009907CC /* REDAlertWindow.m */,
 				A4EE3D9417438A4D009907CC /* REDButton.h */,
 				A4EE3D9517438A4D009907CC /* REDButton.m */,
+				A43A3477175E85A200F23505 /* REDAlertViewController.h */,
+				A43A3478175E85A200F23505 /* REDAlertViewController.m */,
 				A4EE3D9917438A7D009907CC /* Images */,
 			);
 			path = REDAlertView;
@@ -310,6 +315,7 @@
 				A4EE3D9717438A4D009907CC /* REDAlertWindow.m in Sources */,
 				A4EE3D9817438A4D009907CC /* REDButton.m in Sources */,
 				A48DE5D0174ABC0300EB1C2B /* CAAnimation+EasingEquations.m in Sources */,
+				A43A3479175E85A200F23505 /* REDAlertViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -7,7 +7,7 @@
 //
 
 #import "REDAlertView.h"
-#import "REDAlertWindow.h"
+#import "REDAlertViewController.h"
 #import "REDButton.h"
 
 #import <QuartzCore/QuartzCore.h>
@@ -53,6 +53,7 @@ static CGFloat const kButtonTopBottomPadding = 8.0;
     if (self)
     {
         self.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.95];
+        self.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
         
         self.layer.masksToBounds = NO;
         self.layer.cornerRadius = 4.0;
@@ -170,7 +171,7 @@ static CGFloat const kButtonTopBottomPadding = 8.0;
     if (self.willPresentBlock)
         self.willPresentBlock(weakSelf);
     
-    [[REDAlertWindow mainWindow] addAlert:self completionBlock:^{
+    [[REDAlertViewController sharedAlertViewController] addAlert:self completionBlock:^{
         if (self.didPresentBlock)
             self.didPresentBlock(weakSelf);
     }];
@@ -190,7 +191,7 @@ static CGFloat const kButtonTopBottomPadding = 8.0;
         self.clickedButtonBlock(buttonIndex);
     }
     
-    [[REDAlertWindow mainWindow] removeAlert:self];
+    [[REDAlertViewController sharedAlertViewController] removeAlert:self];
 }
 
 #pragma mark -
