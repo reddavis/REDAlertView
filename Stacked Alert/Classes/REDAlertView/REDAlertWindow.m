@@ -20,6 +20,9 @@
 @end
 
 
+NSString *const kREDAlertWindowShakeMotionBegan = @"REDAlertWindowShakeMotionBegan";
+
+
 @implementation REDAlertWindow
 
 #pragma mark - Initialization
@@ -34,6 +37,14 @@
     }
     
     return self;
+}
+
+#pragma mark -
+
+- (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
+{
+    if (motion == UIEventSubtypeMotionShake)
+        [[NSNotificationCenter defaultCenter] postNotificationName:kREDAlertWindowShakeMotionBegan object:nil];
 }
 
 #pragma mark - Drawing

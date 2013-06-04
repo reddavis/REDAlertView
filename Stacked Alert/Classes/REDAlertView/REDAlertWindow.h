@@ -11,6 +11,8 @@
 
 @class REDAlertView;
 
+extern NSString *const kREDAlertWindowShakeMotionBegan;
+
 
 @interface REDAlertWindow : UIWindow
 

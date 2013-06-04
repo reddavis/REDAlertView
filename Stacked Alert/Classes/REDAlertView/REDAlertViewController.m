@@ -29,6 +29,7 @@
 - (void)dismissAllAlerts;
 - (BOOL)isTopAlertView:(REDAlertView *)alertView;
 - (void)alertViewPanGestureEngadged:(UIGestureRecognizer *)gesture;
+- (void)shakeMotionBeganNotification:(NSNotification *)notification;
 
 @end
 
@@ -62,9 +63,16 @@
         self.alertViews = [NSMutableArray array];
         self.animationQueue = [NSMutableArray array];
         self.gestureStartingPoints = [NSMutableDictionary dictionary];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shakeMotionBeganNotification:) name:kREDAlertWindowShakeMotionBegan object:nil];
     }
     
     return self;
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - View Lifecycle
@@ -319,18 +327,19 @@
     }
 }
 
-- (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
-{
-    if (motion == UIEventSubtypeMotionShake)
-        [self dismissAllAlerts];
-}
-
 #pragma mark - Helpers
 
 - (BOOL)isTopAlertView:(REDAlertView *)alertView
 {
     UIView *topView = [self.alertViews lastObject];
     return (alertView == topView);
+}
+
+#pragma mark - Notifications
+
+- (void)shakeMotionBeganNotification:(NSNotification *)notification
+{
+    [self dismissAllAlerts];
 }
 
 @end
